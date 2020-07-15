@@ -147,7 +147,7 @@ coap_set_option(coap_message_t *message, unsigned int opt)
   if(opt > COAP_OPTION_SIZE1) {
     return 0;
   }
-  message->options[opt / COAP_OPTION_MAP_SIZE] |= 1 << (opt % COAP_OPTION_MAP_SIZE);
+  message->options[opt / COAP_OPTION_MAP_SIZE] |= (1 << (opt % COAP_OPTION_MAP_SIZE));
   return 1;
 }
 

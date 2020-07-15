@@ -52,143 +52,30 @@ cose_encrypt0_init(cose_encrypt0_t *cose)
   cose_key_init(&cose->key);
 }
 
-#if 0
 void
-cose_encrypt0_set_algo(cose_encrypt0_t *ptr, cose_algo_t algo)
+cose_encrypt0_set_partial_iv(cose_encrypt0_t *ptr, uint8_t *buffer, size_t size)
 {
-  cose_encrypt_set_algo(&ptr->enc, algo);
-}
-cose_algo_t cose_encrypt0_get_algo(const cose_encrypt0_t *ptr)
-{
-  return cose_encrypt_get_algo(&ptr->enc);
-}
-
-void
-cose_encrypt0_set_content(cose_encrypt0_t *ptr, uint8_t *buffer, size_t size)
-{
-  cose_encrypt_set_payload(&ptr->enc, buffer, size);
-}
-
-size_t cose_encrypt0_get_content(cose_encrypt0_t *ptr, const uint8_t **buffer)
-{
-  *buffer = ptr->enc.payload;
-  return ptr->enc.payload_len;
-}
-#endif
-
-void
-cose_encrypt0_set_partial_iv(cose_encrypt0_t *ptr, uint8_t *buffer, int size)
-{
-  if(size > 8){
+  if(size > sizeof(ptr->partial_iv)){
 	  return;
   }
   memcpy(ptr->partial_iv, buffer, size);
   ptr->partial_iv_len = size;
 }
+
 /* Return length */
-int
+size_t
 cose_encrypt0_get_partial_iv(cose_encrypt0_t *ptr, uint8_t **buffer)
 {
   *buffer = ptr->partial_iv;
   return ptr->partial_iv_len;
 }
-#if 0
-void
-cose_encrypt0_set_key_id(cose_encrypt0_t *ptr, const uint8_t *buffer, uint8_t size)
-{
-  ptr->key_id = buffer;
-  ptr->key_id_len = size;
-}
-/* Return length */
-uint8_t
-cose_encrypt0_get_key_id(cose_encrypt0_t *ptr, const uint8_t **buffer)
-{
-  *buffer = ptr->key_id;
-  return ptr->key_id_len;
-}
-#endif
 
-int cose_encrypt0_get_kid_context(cose_encrypt0_t *ptr, uint8_t **buffer){
+size_t cose_encrypt0_get_kid_context(cose_encrypt0_t *ptr, uint8_t **buffer){
   *buffer = ptr->kid_context;
   return ptr->kid_context_len;
 }
 
-void cose_encrypt0_set_kid_context(cose_encrypt0_t *ptr, uint8_t *buffer, int size){
+void cose_encrypt0_set_kid_context(cose_encrypt0_t *ptr, uint8_t *buffer, size_t size){
   ptr->kid_context = buffer;
   ptr->kid_context_len = size;
 } 
-
-#if 0
-void
-cose_encrypt0_set_aad(cose_encrypt0_t *ptr, uint8_t *buffer, int size)
-{
-  ptr->aad = buffer;
-  ptr->aad_len = size;
-}
-/* Returns 1 if successfull, 0 if key is of incorrect length. */
-int
-cose_encrypt0_set_key(cose_encrypt0_t *ptr, uint8_t *key, int key_size)
-{
-  if(key_size != 16) {
-    return 0;
-  }
-
-  ptr->key = key;
-  ptr->key_len = key_size;
-
-  return 1;
-}
-#endif
-
-/*void
-cose_encrypt0_set_nonce(cose_encrypt0_t *ptr, uint8_t *buffer, int size)
-{
-  ptr->nonce = buffer;
-  ptr->nonce_len = size;
-}*/
-#if 0
-int
-cose_encrypt0_encrypt(cose_encrypt0_t *ptr)
-{
-  if(ptr->key == NULL || ptr->key_len != 16) {
-    return -1;
-  }
-  if(ptr->nonce == NULL || ptr->nonce_len != 13) {
-    return -2;
-  }
-  if(ptr->aad == NULL || ptr->aad_len == 0) {
-    return -3;
-  }
-  if(ptr->enc.payload == NULL) {
-    return -4;
-  }
-
-  return encrypt(cose_encrypt0_get_algo(ptr),
-    ptr->key, ptr->key_len,
-    ptr->nonce, ptr->nonce_len,
-    ptr->aad, ptr->aad_len,
-    ptr->enc.payload, ptr->enc.payload_len);
-}
-int
-cose_encrypt0_decrypt(cose_encrypt0_t *ptr)
-{
-  if(ptr->key == NULL || ptr->key_len != 16) {
-    return -1;
-  }
-  if(ptr->nonce == NULL || ptr->nonce_len != 13) {
-    return -2;
-  }
-  if(ptr->aad == NULL || ptr->aad_len == 0) {
-    return -3;
-  }
-  if(ptr->enc.payload == NULL ) {
-    return -4;
-  }
-
-  return decrypt(cose_encrypt0_get_algo(ptr),
-    ptr->key, ptr->key_len,
-    ptr->nonce, ptr->nonce_len,
-    ptr->aad, ptr->aad_len,
-    ptr->enc.payload, ptr->enc.payload_len);
-}
-#endif

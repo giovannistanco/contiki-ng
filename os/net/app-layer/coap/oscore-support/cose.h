@@ -39,6 +39,7 @@
 
 #ifndef _COSE_H
 #define _COSE_H
+
 #include <inttypes.h>
 
 #include "cose/crypto.h"
@@ -50,58 +51,23 @@ typedef struct cose_encrypt0_t {
   cose_encrypt_t crypt;
   cose_key_t key;
 
-  //uint8_t *key;
-  //int key_len;
-
   uint8_t partial_iv[8];
-  int partial_iv_len;
-
-  //const uint8_t *key_id;
-  //uint8_t key_id_len;
+  size_t partial_iv_len;
 
   uint8_t *kid_context;
-  int kid_context_len;
-
-  //uint8_t *nonce;
-  //int nonce_len;
-
-  //uint8_t *aad;
-  //int aad_len;
+  size_t kid_context_len;
 
 } cose_encrypt0_t;
 
 /* Initiate a new COSE Encrypt0 object. */
 void cose_encrypt0_init(cose_encrypt0_t *ptr);
 
-//void cose_encrypt0_set_algo(cose_encrypt0_t *ptr, cose_algo_t alg);
-//cose_algo_t cose_encrypt0_get_algo(const cose_encrypt0_t *ptr);
+/* Return length */
+size_t cose_encrypt0_get_partial_iv(cose_encrypt0_t *ptr, uint8_t **buffer);
+void cose_encrypt0_set_partial_iv(cose_encrypt0_t *ptr, uint8_t *buffer, size_t size);
 
 /* Return length */
-//size_t cose_encrypt0_get_content(cose_encrypt0_t *ptr, const uint8_t **buffer);
-//void cose_encrypt0_set_content(cose_encrypt0_t *ptr, uint8_t *buffer, size_t size);
-
-
-/* Return length */
-int cose_encrypt0_get_partial_iv(cose_encrypt0_t *ptr, uint8_t **buffer);
-void cose_encrypt0_set_partial_iv(cose_encrypt0_t *ptr, uint8_t *buffer, int size);
-
-
-/* Return length */
-//uint8_t cose_encrypt0_get_key_id(cose_encrypt0_t *ptr, const uint8_t **buffer);
-//void cose_encrypt0_set_key_id(cose_encrypt0_t *ptr, const uint8_t *buffer, uint8_t size);
-
-//void cose_encrypt0_set_aad(cose_encrypt0_t *ptr, uint8_t *buffer, int size);
-
-/* Return length */
-int cose_encrypt0_get_kid_context(cose_encrypt0_t *ptr, uint8_t **buffer);
-void cose_encrypt0_set_kid_context(cose_encrypt0_t *ptr, uint8_t *buffer, int size);
-
-/* Returns 1 if successfull, 0 if key is of incorrect length. */
-//int cose_encrypt0_set_key(cose_encrypt0_t *ptr, uint8_t *key, int key_size);
-
-//void cose_encrypt0_set_nonce(cose_encrypt0_t *ptr, uint8_t *buffer, int size);
-
-//int cose_encrypt0_encrypt(cose_encrypt0_t *ptr);
-//int cose_encrypt0_decrypt(cose_encrypt0_t *ptr);
+size_t cose_encrypt0_get_kid_context(cose_encrypt0_t *ptr, uint8_t **buffer);
+void cose_encrypt0_set_kid_context(cose_encrypt0_t *ptr, uint8_t *buffer, size_t size);
 
 #endif /* _COSE_H */
