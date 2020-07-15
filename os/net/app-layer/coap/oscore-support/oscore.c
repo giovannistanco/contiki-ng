@@ -79,20 +79,24 @@ coap_is_request(const coap_message_t *coap_pkt)
 {
   return coap_pkt->code >= COAP_GET && coap_pkt->code <= COAP_DELETE;
 }
+
 bool
 oscore_is_request_protected(const coap_message_t *request)
 {
   return request != NULL && coap_is_option(request, COAP_OPTION_OSCORE);
 }
+
 void
 oscore_protect_resource(coap_resource_t *resource)
 {
   resource->oscore_protected = 1;
 }
+
 bool oscore_is_resource_protected(const coap_resource_t *resource)
 {
   return resource->oscore_protected;
 }
+
 static uint8_t
 u64tob(uint64_t value, uint8_t *buffer)
 {
@@ -112,11 +116,12 @@ u64tob(uint64_t value, uint8_t *buffer)
   return length == 0 ? 1 : length;
 
 }
+
 static uint64_t
 btou64(uint8_t *bytes, size_t len)
 {
   uint8_t buffer[8];
-  memset(buffer, 0, sizeof(buffer)); /* function variables are not initializated to anything */
+  memset(buffer, 0, sizeof(buffer));
   int offset = 8 - len;
   uint64_t num;
 
@@ -134,8 +139,9 @@ btou64(uint8_t *bytes, size_t len)
 
   return num;
 }
+
 static int
-oscore_encode_option_value(uint8_t *option_buffer, cose_encrypt0_t *cose, bool include_partial_iv)
+oscore_encode_option_value(uint8_t *option_buffer, const cose_encrypt0_t *cose, bool include_partial_iv)
 {
   uint8_t offset = 1;
   if(cose->partial_iv_len > 5){
@@ -221,8 +227,7 @@ oscore_decode_message(coap_message_t *coap_pkt)
   uint8_t partial_iv_buffer[8];
 
   cose_encrypt0_t cose[1];
-  cose_encrypt_init(&cose->crypt, COSE_FLAGS_ENCRYPT0);
-  cose_key_init(&cose->key);
+  cose_encrypt0_init(cose);
 
   printf_hex_detailed("object_security", coap_pkt->object_security, coap_pkt->object_security_len);
 
@@ -366,7 +371,7 @@ oscore_populate_cose(cose_encrypt0_t *cose, const coap_message_t *pkt, const osc
 size_t
 oscore_prepare_message(coap_message_t *coap_pkt, uint8_t *buffer)
 {
-  uint8_t content_buffer[COAP_MAX_CHUNK_SIZE];
+  uint8_t content_buffer[COAP_MAX_CHUNK_SIZE + COSE_CRYPTO_AEAD_AESCCM_16_64_128_ABYTES];
   uint8_t ciphertext_buffer[COAP_MAX_CHUNK_SIZE + COSE_CRYPTO_AEAD_AESCCM_16_64_128_ABYTES];
   uint8_t aad_buffer[25/*35*/];
   uint8_t nonce_buffer[COSE_CRYPTO_AEAD_AESCCM_16_64_128_NONCEBYTES];
@@ -374,8 +379,7 @@ oscore_prepare_message(coap_message_t *coap_pkt, uint8_t *buffer)
   uint8_t partial_iv_buffer[8];
 
   cose_encrypt0_t cose[1];
-  cose_encrypt_init(&cose->crypt, COSE_FLAGS_ENCRYPT0);
-  cose_key_init(&cose->key);
+  cose_encrypt0_init(cose);
 
   /*  1 Retrieve the Sender Context associated with the target resource. */
   oscore_ctx_t *ctx = coap_pkt->security_context;
@@ -386,7 +390,7 @@ oscore_prepare_message(coap_message_t *coap_pkt, uint8_t *buffer)
 
   oscore_populate_cose(cose, coap_pkt, coap_pkt->security_context, true, partial_iv_buffer);
 
-  uint8_t plaintext_len = oscore_serializer(coap_pkt, content_buffer, ROLE_CONFIDENTIAL);
+  size_t plaintext_len = oscore_serializer(coap_pkt, content_buffer, ROLE_CONFIDENTIAL);
   if(plaintext_len > COAP_MAX_CHUNK_SIZE){
     LOG_ERR("OSCORE Message to large to process.\n");
     return PACKET_SERIALIZATION_ERROR;
@@ -425,7 +429,7 @@ oscore_prepare_message(coap_message_t *coap_pkt, uint8_t *buffer)
     LOG_ERR("OSCORE internal error %zd.\n", ciphertext_len);
     return PACKET_SERIALIZATION_ERROR;
   }
-  
+
   // Partial IV shall NOT be included in responses if not a request
   const bool include_partial_iv = coap_is_request(coap_pkt);
   uint8_t option_value_len = oscore_encode_option_value(option_value_buffer, cose, include_partial_iv);
@@ -442,6 +446,7 @@ oscore_prepare_message(coap_message_t *coap_pkt, uint8_t *buffer)
 
   return serialized_len;
 }
+
 /* Creates and sets External AAD */
 static int
 oscore_prepare_aad(nanocbor_encoder_t* enc, const coap_message_t *coap_pkt, const cose_encrypt0_t *cose, bool sending)

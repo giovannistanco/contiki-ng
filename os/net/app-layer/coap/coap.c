@@ -1641,20 +1641,20 @@ coap_status_t oscore_parser(coap_message_t *coap_pkt, const uint8_t *data,
     return NO_ERROR;
 }
 
-int coap_get_header_object_security(coap_message_t *coap_pkt, uint8_t **object_security){
+size_t coap_get_header_object_security(coap_message_t *coap_pkt, uint8_t **object_security){
   if(!coap_is_option(coap_pkt, COAP_OPTION_OSCORE)) {
+    *object_security = NULL;
     return 0;
   }
   *object_security = coap_pkt->object_security;
   return coap_pkt->object_security_len;
 }
 
-int coap_set_header_object_security(coap_message_t *coap_pkt, uint8_t *object_security, size_t object_security_len){
+void coap_set_header_object_security(coap_message_t *coap_pkt, uint8_t *object_security, size_t object_security_len){
   coap_pkt->object_security = object_security;
   coap_pkt->object_security_len = object_security_len;
 
   coap_set_option(coap_pkt, COAP_OPTION_OSCORE);
-  return coap_pkt->object_security_len;
 }
 
 void coap_set_oscore(coap_message_t *coap_pkt, oscore_ctx_t* ctx)

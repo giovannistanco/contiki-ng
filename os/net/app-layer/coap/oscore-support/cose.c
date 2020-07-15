@@ -41,16 +41,18 @@
 #include "oscore-crypto.h"
 #include "string.h"
 
-#if 0
+
 /* Initiate a new COSE Encrypt0 object. */
 void
-cose_encrypt0_init(cose_encrypt0_t *ptr)
+cose_encrypt0_init(cose_encrypt0_t *cose)
 {
-  memset(ptr, 0, sizeof(cose_encrypt0_t));
+  memset(cose, 0, sizeof(cose_encrypt0_t));
 
-  cose_encrypt_init(&ptr->enc, COSE_FLAGS_ENCRYPT0);
+  cose_encrypt_init(&cose->crypt, COSE_FLAGS_ENCRYPT0);
+  cose_key_init(&cose->key);
 }
 
+#if 0
 void
 cose_encrypt0_set_algo(cose_encrypt0_t *ptr, cose_algo_t algo)
 {
