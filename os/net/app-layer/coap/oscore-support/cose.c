@@ -41,23 +41,38 @@
 #include "oscore-crypto.h"
 #include "string.h"
 
+#if 0
 /* Initiate a new COSE Encrypt0 object. */
 void
 cose_encrypt0_init(cose_encrypt0_t *ptr)
 {
   memset(ptr, 0, sizeof(cose_encrypt0_t));
+
+  cose_encrypt_init(&ptr->enc, COSE_FLAGS_ENCRYPT0);
 }
+
 void
-cose_encrypt0_set_alg(cose_encrypt0_t *ptr, uint8_t alg)
+cose_encrypt0_set_algo(cose_encrypt0_t *ptr, cose_algo_t algo)
 {
-  ptr->alg = alg;
+  cose_encrypt_set_algo(&ptr->enc, algo);
 }
+cose_algo_t cose_encrypt0_get_algo(const cose_encrypt0_t *ptr)
+{
+  return cose_encrypt_get_algo(&ptr->enc);
+}
+
 void
-cose_encrypt0_set_content(cose_encrypt0_t *ptr, uint8_t *buffer, uint16_t size)
+cose_encrypt0_set_content(cose_encrypt0_t *ptr, uint8_t *buffer, size_t size)
 {
-  ptr->content = buffer;
-  ptr->content_len = size;
+  cose_encrypt_set_payload(&ptr->enc, buffer, size);
 }
+
+size_t cose_encrypt0_get_content(cose_encrypt0_t *ptr, const uint8_t **buffer)
+{
+  *buffer = ptr->enc.payload;
+  return ptr->enc.payload_len;
+}
+#endif
 
 void
 cose_encrypt0_set_partial_iv(cose_encrypt0_t *ptr, uint8_t *buffer, int size)
@@ -75,6 +90,7 @@ cose_encrypt0_get_partial_iv(cose_encrypt0_t *ptr, uint8_t **buffer)
   *buffer = ptr->partial_iv;
   return ptr->partial_iv_len;
 }
+#if 0
 void
 cose_encrypt0_set_key_id(cose_encrypt0_t *ptr, const uint8_t *buffer, uint8_t size)
 {
@@ -88,6 +104,7 @@ cose_encrypt0_get_key_id(cose_encrypt0_t *ptr, const uint8_t **buffer)
   *buffer = ptr->key_id;
   return ptr->key_id_len;
 }
+#endif
 
 int cose_encrypt0_get_kid_context(cose_encrypt0_t *ptr, uint8_t **buffer){
   *buffer = ptr->kid_context;
@@ -99,7 +116,7 @@ void cose_encrypt0_set_kid_context(cose_encrypt0_t *ptr, uint8_t *buffer, int si
   ptr->kid_context_len = size;
 } 
 
-
+#if 0
 void
 cose_encrypt0_set_aad(cose_encrypt0_t *ptr, uint8_t *buffer, int size)
 {
@@ -119,12 +136,15 @@ cose_encrypt0_set_key(cose_encrypt0_t *ptr, uint8_t *key, int key_size)
 
   return 1;
 }
-void
+#endif
+
+/*void
 cose_encrypt0_set_nonce(cose_encrypt0_t *ptr, uint8_t *buffer, int size)
 {
   ptr->nonce = buffer;
   ptr->nonce_len = size;
-}
+}*/
+#if 0
 int
 cose_encrypt0_encrypt(cose_encrypt0_t *ptr)
 {
@@ -137,15 +157,15 @@ cose_encrypt0_encrypt(cose_encrypt0_t *ptr)
   if(ptr->aad == NULL || ptr->aad_len == 0) {
     return -3;
   }
-  if(ptr->content == NULL ) {
+  if(ptr->enc.payload == NULL) {
     return -4;
   }
 
-  return encrypt(ptr->alg,
+  return encrypt(cose_encrypt0_get_algo(ptr),
     ptr->key, ptr->key_len,
     ptr->nonce, ptr->nonce_len,
     ptr->aad, ptr->aad_len,
-    ptr->content, ptr->content_len);
+    ptr->enc.payload, ptr->enc.payload_len);
 }
 int
 cose_encrypt0_decrypt(cose_encrypt0_t *ptr)
@@ -159,13 +179,14 @@ cose_encrypt0_decrypt(cose_encrypt0_t *ptr)
   if(ptr->aad == NULL || ptr->aad_len == 0) {
     return -3;
   }
-  if(ptr->content == NULL ) {
+  if(ptr->enc.payload == NULL ) {
     return -4;
   }
 
-  return decrypt(ptr->alg,
+  return decrypt(cose_encrypt0_get_algo(ptr),
     ptr->key, ptr->key_len,
     ptr->nonce, ptr->nonce_len,
     ptr->aad, ptr->aad_len,
-    ptr->content, ptr->content_len);
+    ptr->enc.payload, ptr->enc.payload_len);
 }
+#endif

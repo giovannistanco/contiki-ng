@@ -38,18 +38,19 @@
 
 
 #include "oscore-context.h"
-#include <stddef.h>
-#include "lib/memb.h"
-#include "lib/list.h"
-#include <string.h>
 #include "oscore-crypto.h"
 #include "oscore.h"
+
+#include <stddef.h>
+#include <string.h>
 #include "assert.h"
+#include <stdio.h>
+
+#include "lib/memb.h"
+#include "lib/list.h"
 
 #include "nanocbor/nanocbor.h"
 #include "nanocbor-helper.h"
-
-#include <stdio.h>
 
 /* Log configuration */
 #include "sys/log.h"
@@ -80,7 +81,7 @@ oscore_ctx_store_init(void)
 static int
 compose_info(
   uint8_t *buffer, uint8_t buffer_len,
-  uint8_t alg,
+  cose_algo_t alg,
   const uint8_t *id, uint8_t id_len,
   const uint8_t *id_context, uint8_t id_context_len,
   const char* kind,
@@ -119,7 +120,7 @@ void
 oscore_derive_ctx(oscore_ctx_t *common_ctx,
   const uint8_t *master_secret, uint8_t master_secret_len,
   const uint8_t *master_salt, uint8_t master_salt_len,
-  uint8_t alg,
+  cose_algo_t algo,
   const uint8_t *sid, uint8_t sid_len,
   const uint8_t *rid, uint8_t rid_len,
   const uint8_t *id_context, uint8_t id_context_len,
@@ -129,17 +130,17 @@ oscore_derive_ctx(oscore_ctx_t *common_ctx,
   int info_len;
 
   /* sender_key */
-  info_len = compose_info(info_buffer, sizeof(info_buffer), alg, sid, sid_len, id_context, id_context_len, "Key", CONTEXT_KEY_LEN);
+  info_len = compose_info(info_buffer, sizeof(info_buffer), algo, sid, sid_len, id_context, id_context_len, "Key", CONTEXT_KEY_LEN);
   assert(info_len > 0);
   hkdf(master_salt, master_salt_len, master_secret, master_secret_len, info_buffer, info_len, common_ctx->sender_context.sender_key, CONTEXT_KEY_LEN);
 
   /* Receiver key */
-  info_len = compose_info(info_buffer, sizeof(info_buffer), alg, rid, rid_len, id_context, id_context_len, "Key", CONTEXT_KEY_LEN);
+  info_len = compose_info(info_buffer, sizeof(info_buffer), algo, rid, rid_len, id_context, id_context_len, "Key", CONTEXT_KEY_LEN);
   assert(info_len > 0);
   hkdf(master_salt, master_salt_len, master_secret, master_secret_len, info_buffer, info_len, common_ctx->recipient_context.recipient_key, CONTEXT_KEY_LEN);
 
   /* common IV */
-  info_len = compose_info(info_buffer, sizeof(info_buffer), alg, NULL, 0, id_context, id_context_len, "IV", CONTEXT_INIT_VECT_LEN);
+  info_len = compose_info(info_buffer, sizeof(info_buffer), algo, NULL, 0, id_context, id_context_len, "IV", CONTEXT_INIT_VECT_LEN);
   assert(info_len > 0);
   hkdf(master_salt, master_salt_len, master_secret, master_secret_len, info_buffer, info_len, common_ctx->common_iv, CONTEXT_INIT_VECT_LEN);
 
@@ -147,7 +148,7 @@ oscore_derive_ctx(oscore_ctx_t *common_ctx,
   common_ctx->master_secret_len = master_secret_len;
   common_ctx->master_salt = master_salt;
   common_ctx->master_salt_len = master_salt_len;
-  common_ctx->alg = alg;
+  common_ctx->algo = algo;
   common_ctx->id_context = id_context;
   common_ctx->id_context_len = id_context_len;
 

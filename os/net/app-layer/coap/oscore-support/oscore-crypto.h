@@ -62,6 +62,7 @@
 #define OSCORE_CRYPTO_INVALID_KEY_LEN       -6
 #define OSCORE_CRYPTO_INVALID_NONCE_LEN     -7
 
+#if 0
 /* Returns 0 if failure to encrypt. Ciphertext length, otherwise. Tag-length and ciphertext length is derived from algorithm. No check is done to ensure that ciphertext buffer is of the correct length. */
 int encrypt(
 	uint8_t alg,
@@ -77,6 +78,7 @@ int decrypt(
 	const uint8_t *nonce, uint8_t nonce_len,
 	const uint8_t *aad, uint8_t aad_len,
 	uint8_t *buffer, uint16_t ciphertext_len);
+#endif
 
 /* int hkdf(uint8_t whichSha, const uint8_t *salt, uint8_t salt_len, const uint8_t *ikm,  uint8_t ikm_len, const uint8_t *info, uint8_t info_len, uint8_t *okm, uint8_t   okm_len); */
 int hkdf(

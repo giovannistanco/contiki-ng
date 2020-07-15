@@ -1350,19 +1350,19 @@ oscore_serializer(coap_message_t *coap_pkt, uint8_t *buffer, uint8_t role)
   }
 }
 
-coap_status_t oscore_parser(coap_message_t *coap_pkt, uint8_t *data,
-                                         uint16_t data_len, uint8_t role){
+coap_status_t oscore_parser(coap_message_t *coap_pkt, const uint8_t *data,
+                            uint16_t data_len, uint8_t role) {
 
   int OSCOAP = 0;    
   uint8_t* original_buffer = NULL;
 
   if(role == ROLE_COAP){
     memset(coap_pkt, 0, sizeof(coap_message_t));
-    coap_pkt->buffer = data; 
+    coap_pkt->buffer = (uint8_t *)data; 
 
   } else if (role == ROLE_CONFIDENTIAL){
     original_buffer = coap_pkt->buffer;
-    coap_pkt->buffer = data;
+    coap_pkt->buffer = (uint8_t *)data;
   } 
   /* pointer to packet bytes */
 
@@ -1393,10 +1393,10 @@ coap_status_t oscore_parser(coap_message_t *coap_pkt, uint8_t *data,
     coap_pkt->code = *data;
     data++; //Step past the encrypted Coap Code
     data_len--; // Decrement the length because of the encrypted code
-    current_option = data;
+    current_option = (uint8_t *)data;
 
   } else {
-     current_option = data + COAP_HEADER_LEN;
+     current_option = (uint8_t *)data + COAP_HEADER_LEN;
      memcpy(coap_pkt->token, current_option, coap_pkt->token_len);
      LOG_DBG_("Token (len %u) [0x%02X%02X%02X%02X%02X%02X%02X%02X]\n",
          coap_pkt->token_len, coap_pkt->token[0], coap_pkt->token[1],

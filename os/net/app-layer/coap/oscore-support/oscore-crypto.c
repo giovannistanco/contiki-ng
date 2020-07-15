@@ -57,6 +57,7 @@
 
 #define OSCORE_ENC_DEC_DEBUG
 
+#if 0
 #ifdef OSCORE_ENC_DEC_DEBUG
 static void
 printf_hex(const char *name, const uint8_t *data, unsigned int len)
@@ -77,18 +78,18 @@ encrypt(uint8_t alg,
         const uint8_t *aad, uint8_t aad_len,
         uint8_t *buffer, uint16_t plaintext_len)
 {
-  if(alg != COSE_Algorithm_AES_CCM_16_64_128) {
+  if(alg != COSE_ALGO_AESCCM_16_64_128) {
     LOG_ERR("Unsupported algorithm %u\n", alg);
     return OSCORE_CRYPTO_UNSUPPORTED_ALGORITHM;
   }
 
-  if(key_len != COSE_algorithm_AES_CCM_16_64_128_KEY_LEN) {
-    LOG_ERR("Invalid key length %u != %u\n", key_len, COSE_algorithm_AES_CCM_16_64_128_KEY_LEN);
+  if(key_len != COSE_CRYPTO_AEAD_AESCCM_16_64_128_KEYBYTES) {
+    LOG_ERR("Invalid key length %u != %u\n", key_len, COSE_CRYPTO_AEAD_AESCCM_16_64_128_KEYBYTES);
     return OSCORE_CRYPTO_INVALID_KEY_LEN;
   }
 
-  if(nonce_len != COSE_algorithm_AES_CCM_16_64_128_IV_LEN) {
-    LOG_ERR("Invalid nonce length %u != %u\n", nonce_len, COSE_algorithm_AES_CCM_16_64_128_IV_LEN);
+  if(nonce_len != COSE_CRYPTO_AEAD_AESCCM_16_64_128_NONCEBYTES) {
+    LOG_ERR("Invalid nonce length %u != %u\n", nonce_len, COSE_CRYPTO_AEAD_AESCCM_16_64_128_NONCEBYTES);
     return OSCORE_CRYPTO_INVALID_NONCE_LEN;
   }
 
@@ -100,48 +101,48 @@ encrypt(uint8_t alg,
   printf_hex("IV", nonce, nonce_len);
   printf_hex("AAD", aad, aad_len);
   printf_hex("Plaintext", buffer, plaintext_len);
-  printf_hex("Tag", tag_buffer, COSE_algorithm_AES_CCM_16_64_128_TAG_LEN);
+  printf_hex("Tag", tag_buffer, COSE_CRYPTO_AEAD_AESCCM_16_64_128_ABYTES);
 #endif
 
   CCM_STAR.set_key(key);
-  CCM_STAR.aead(nonce, buffer, plaintext_len, aad, aad_len, tag_buffer, COSE_algorithm_AES_CCM_16_64_128_TAG_LEN, 1);
+  CCM_STAR.aead(nonce, buffer, plaintext_len, aad, aad_len, tag_buffer, COSE_CRYPTO_AEAD_AESCCM_16_64_128_ABYTES, 1);
 
 #ifdef OSCORE_ENC_DEC_DEBUG
-  printf_hex("Tag'", tag_buffer, COSE_algorithm_AES_CCM_16_64_128_TAG_LEN);
+  printf_hex("Tag'", tag_buffer, COSE_CRYPTO_AEAD_AESCCM_16_64_128_ABYTES);
   printf_hex("Ciphertext", buffer, plaintext_len);
 #endif
 
-  return plaintext_len + COSE_algorithm_AES_CCM_16_64_128_TAG_LEN;
+  return plaintext_len + COSE_CRYPTO_AEAD_AESCCM_16_64_128_ABYTES;
 }
 
 /* Return 0 if if decryption failure. Plaintext length otherwise.
    Tag-length and plaintext length is derived from algorithm. No check is done to ensure
    that plaintext buffer is of the correct length. */
 int
-decrypt(uint8_t alg,
+decrypt(cose_algo_t alg,
         const uint8_t *key, uint8_t key_len,
         const uint8_t *nonce, uint8_t nonce_len,
         const uint8_t *aad, uint8_t aad_len,
         uint8_t *buffer, uint16_t ciphertext_len)
 {
-  if(alg != COSE_Algorithm_AES_CCM_16_64_128) {
+  if(alg != COSE_ALGO_AESCCM_16_64_128) {
     LOG_ERR("Unsupported algorithm %u\n", alg);
     return OSCORE_CRYPTO_UNSUPPORTED_ALGORITHM;
   }
 
-  if(key_len != COSE_algorithm_AES_CCM_16_64_128_KEY_LEN) {
-    LOG_ERR("Invalid key length %u != %u\n", key_len, COSE_algorithm_AES_CCM_16_64_128_KEY_LEN);
+  if(key_len != COSE_CRYPTO_AEAD_AESCCM_16_64_128_KEYBYTES) {
+    LOG_ERR("Invalid key length %u != %u\n", key_len, COSE_CRYPTO_AEAD_AESCCM_16_64_128_KEYBYTES);
     return OSCORE_CRYPTO_INVALID_KEY_LEN;
   }
 
-  if(nonce_len != COSE_algorithm_AES_CCM_16_64_128_IV_LEN) {
-    LOG_ERR("Invalid nonce length %u != %u\n", nonce_len, COSE_algorithm_AES_CCM_16_64_128_IV_LEN);
+  if(nonce_len != COSE_CRYPTO_AEAD_AESCCM_16_64_128_NONCEBYTES) {
+    LOG_ERR("Invalid nonce length %u != %u\n", nonce_len, COSE_CRYPTO_AEAD_AESCCM_16_64_128_NONCEBYTES);
     return OSCORE_CRYPTO_INVALID_NONCE_LEN;
   }
 
-  uint8_t tag_buffer[COSE_algorithm_AES_CCM_16_64_128_TAG_LEN];
+  uint8_t tag_buffer[COSE_CRYPTO_AEAD_AESCCM_16_64_128_ABYTES];
   
-  uint16_t plaintext_len = ciphertext_len - COSE_algorithm_AES_CCM_16_64_128_TAG_LEN;
+  uint16_t plaintext_len = ciphertext_len - COSE_CRYPTO_AEAD_AESCCM_16_64_128_ABYTES;
 
 #ifdef OSCORE_ENC_DEC_DEBUG
   LOG_DBG("Decrypt:\n");
@@ -149,23 +150,24 @@ decrypt(uint8_t alg,
   printf_hex("IV", nonce, nonce_len);
   printf_hex("AAD", aad, aad_len);
   printf_hex("Ciphertext", buffer, plaintext_len);
-  printf_hex("Tag", &buffer[plaintext_len], COSE_algorithm_AES_CCM_16_64_128_TAG_LEN);
+  printf_hex("Tag", &buffer[plaintext_len], COSE_CRYPTO_AEAD_AESCCM_16_64_128_ABYTES);
 #endif
 
   CCM_STAR.set_key(key);
-  CCM_STAR.aead(nonce, buffer, plaintext_len, aad, aad_len, tag_buffer, COSE_algorithm_AES_CCM_16_64_128_TAG_LEN, 0);
+  CCM_STAR.aead(nonce, buffer, plaintext_len, aad, aad_len, tag_buffer, COSE_CRYPTO_AEAD_AESCCM_16_64_128_ABYTES, 0);
 
 #ifdef OSCORE_ENC_DEC_DEBUG
-  printf_hex("Tag'", tag_buffer, COSE_algorithm_AES_CCM_16_64_128_TAG_LEN);
+  printf_hex("Tag'", tag_buffer, COSE_CRYPTO_AEAD_AESCCM_16_64_128_ABYTES);
   printf_hex("Plaintext", buffer, plaintext_len);
 #endif
 
-  if(memcmp(tag_buffer, &buffer[plaintext_len], COSE_algorithm_AES_CCM_16_64_128_TAG_LEN) != 0) {
+  if(memcmp(tag_buffer, &buffer[plaintext_len], COSE_CRYPTO_AEAD_AESCCM_16_64_128_ABYTES) != 0) {
     return OSCORE_CRYPTO_DECRYPTION_FAILURE; /* Decryption/Authentication failure */
   }
   
   return plaintext_len;
 }
+#endif
 
 /* only works with key_len <= 64 bytes */
 void

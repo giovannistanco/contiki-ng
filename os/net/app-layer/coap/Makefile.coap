@@ -13,8 +13,12 @@ ifeq ($(MAKE_WITH_OSCORE),1)
  MODULES += $(TINYDTLS_PATH)/sha2
  CFLAGS += -DSHA2_USE_INTTYPES_H -DWITH_SHA256 -DHAVE_ASSERT_H
  
- CFLAGS += -DWITH_OSCORE=1
+ CFLAGS += -DWITH_OSCORE=1 -DCRYPTO_CONTIKI_NG=1
  MODULES += os/net/app-layer/coap/oscore-support
+ MODULES += os/net/app-layer/coap/oscore-support/libcose/src
+ MODULES += os/net/app-layer/coap/oscore-support/libcose/src/contiki-crypt
+
+ CFLAGS += -I$(CONTIKI)/os/net/app-layer/coap/oscore-support/libcose/include
 
 else ifeq ($(MAKE_WITH_DTLS),1)
 

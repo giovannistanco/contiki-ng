@@ -45,6 +45,8 @@
 #include "coap-constants.h"
 #include "coap-endpoint.h"
 
+#include "cose_defines.h"
+
 #define CONTEXT_KEY_LEN 16
 #define CONTEXT_INIT_VECT_LEN 13
 #define CONTEXT_SEQ_LEN sizeof(uint64_t)
@@ -99,7 +101,7 @@ struct oscore_ctx_t {
   uint8_t master_secret_len;
   uint8_t master_salt_len;
   uint8_t id_context_len;
-  uint8_t alg;
+  cose_algo_t algo;
 };
 
 struct oscore_exchange_t {
@@ -122,7 +124,7 @@ void oscore_ctx_store_init();
 void oscore_derive_ctx(oscore_ctx_t *common_ctx,
   const uint8_t *master_secret, uint8_t master_secret_len,
   const uint8_t *master_salt, uint8_t master_salt_len,
-  uint8_t alg,
+  cose_algo_t alg,
   const uint8_t *sid, uint8_t sid_len,
   const uint8_t *rid, uint8_t rid_len,
   const uint8_t *id_context, uint8_t id_context_len,
