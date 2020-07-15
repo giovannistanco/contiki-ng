@@ -209,7 +209,7 @@ oscore_get_exchange(const uint8_t *token, uint8_t token_len)
 
 
 oscore_ctx_t*
-oscore_get_contex_from_exchange(const uint8_t *token, uint8_t token_len, uint64_t *seq)
+oscore_get_context_from_exchange(const uint8_t *token, uint8_t token_len, uint64_t *seq)
 {
   oscore_exchange_t *ptr = oscore_get_exchange(token, token_len);
   if (ptr) {

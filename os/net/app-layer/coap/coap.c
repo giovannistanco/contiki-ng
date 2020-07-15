@@ -1195,11 +1195,11 @@ oscore_serializer(coap_message_t *coap_pkt, uint8_t *buffer, uint8_t role)
   coap_pkt->buffer = buffer;
 
   if(role == ROLE_COAP){
-      LOG_DBG_("Serializing, role COAP\n");
+      LOG_DBG("Serializing, role COAP\n");
   } else if (role == ROLE_CONFIDENTIAL){
-      LOG_DBG_("Serializing, role CONFIDENTIAL\n");
+      LOG_DBG("Serializing, role CONFIDENTIAL\n");
   } else if( role == ROLE_PROTECTED){
-      LOG_DBG_("Serializing, role PROTECTED\n");
+      LOG_DBG("Serializing, role PROTECTED\n");
   }
 
   if(role == ROLE_COAP){
@@ -1227,15 +1227,15 @@ oscore_serializer(coap_message_t *coap_pkt, uint8_t *buffer, uint8_t role)
 
   if(role == ROLE_COAP){
     /* set Token */
-    LOG_DBG_("Token (len %u)", coap_pkt->token_len);
-    option = coap_pkt->buffer + COAP_HEADER_LEN;
-    for(current_number = 0; current_number < coap_pkt->token_len;
-        ++current_number) {
-      LOG_DBG_(" %02X", coap_pkt->token[current_number]);
-      *option = coap_pkt->token[current_number];
-      ++option;
-    }
+    LOG_DBG_("-Token (len %u) ", coap_pkt->token_len);
+    LOG_DBG_BYTES(coap_pkt->token, coap_pkt->token_len);
     LOG_DBG_("-\n");
+
+    option = coap_pkt->buffer + COAP_HEADER_LEN;
+
+    memcpy(option, coap_pkt->token, coap_pkt->token_len);
+    option += coap_pkt->token_len;
+    
   } else if(role == ROLE_CONFIDENTIAL){
     coap_pkt->buffer[0] = coap_pkt->code;
     option  = coap_pkt->buffer + 1;
@@ -1244,7 +1244,6 @@ oscore_serializer(coap_message_t *coap_pkt, uint8_t *buffer, uint8_t role)
   }
 
   /* Serialize options */
-  current_number = 0;
   LOG_DBG_("-Serializing options at %p-\n", option);
 
   /* The options must be serialized in the order of their number */
