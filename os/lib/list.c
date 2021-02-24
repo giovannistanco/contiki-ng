@@ -284,6 +284,21 @@ list_length(list_t list)
 }
 /*---------------------------------------------------------------------------*/
 /**
+ * Check if the list is empty
+ *
+ * This function return true if the list is empty, otherwise false.
+ *
+ * \param list The list.
+ * \return A boolean indicating if the list if empty or not.
+ */
+/*---------------------------------------------------------------------------*/
+bool
+list_empty(list_t list)
+{
+  return *list == NULL;
+}
+/*---------------------------------------------------------------------------*/
+/**
  * \brief      Insert an item after a specified item on the list
  * \param list The list
  * \param previtem The item after which the new item should be inserted
