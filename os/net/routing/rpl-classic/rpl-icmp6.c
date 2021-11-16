@@ -447,6 +447,14 @@ dio_input(void)
           goto discard;
         }
         dio.prefix_info.length = buffer[i + 2];
+
+        if(dio.prefix_info.length > sizeof(uip_ipaddr_t) * 8) {
+          LOG_WARN("Invalid DAG prefix info, len %u > %u\n",
+                   dio.prefix_info.length, (unsigned)(sizeof(uip_ipaddr_t) * 8));
+          RPL_STAT(rpl_stats.malformed_msgs++);
+          goto discard;
+        }
+
         dio.prefix_info.flags = buffer[i + 3];
         /* valid lifetime is ingnored for now - at i + 4 */
         /* preferred lifetime stored in lifetime */
@@ -736,6 +744,19 @@ dao_input_storing(void)
       case RPL_OPTION_TARGET:
         /* Handle the target option. */
         prefixlen = buffer[i + 3];
+        if(prefixlen == 0) {
+          /* Ignore option targets with a prefix length of 0. */
+          break;
+        }
+        if(prefixlen > 128) {
+          LOG_ERR("Too large target prefix length %d\n", prefixlen);
+          return;
+        }
+        if(i + 4 + ((prefixlen + 7) / CHAR_BIT) > buffer_length) {
+          LOG_ERR("Insufficient space to copy RPL Target of %d bits\n",
+                  prefixlen);
+          return;
+        }
         memset(&prefix, 0, sizeof(prefix));
         memcpy(&prefix, buffer + i + 4, (prefixlen + 7) / CHAR_BIT);
         break;
@@ -973,6 +994,19 @@ dao_input_nonstoring(void)
       case RPL_OPTION_TARGET:
         /* Handle the target option. */
         prefixlen = buffer[i + 3];
+        if(prefixlen == 0) {
+          /* Ignore option targets with a prefix length of 0. */
+          break;
+        }
+        if(prefixlen > 128) {
+          LOG_ERR("Too large target prefix length %d\n", prefixlen);
+          return;
+        }
+        if(i + 4 + ((prefixlen + 7) / CHAR_BIT) > buffer_length) {
+          LOG_ERR("Insufficient space to copy RPL Target of %d bits\n",
+                  prefixlen);
+          return;
+        }
         memset(&prefix, 0, sizeof(prefix));
         memcpy(&prefix, buffer + i + 4, (prefixlen + 7) / CHAR_BIT);
         break;

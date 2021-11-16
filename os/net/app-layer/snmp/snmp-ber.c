@@ -159,14 +159,16 @@ snmp_ber_encode_string_len(snmp_packet_t *snmp_packet, const char *str, uint32_t
 {
   uint32_t i;
 
-  str += length - 1;
-  for(i = 0; i < length; ++i) {
-    if(snmp_packet->used == snmp_packet->max) {
-      return 0;
-    }
+  if(length > 0) {
+    str += length - 1;
+    for(i = 0; i < length; ++i) {
+      if(snmp_packet->used == snmp_packet->max) {
+        return 0;
+      }
 
-    *snmp_packet->out-- = (uint8_t)*str--;
-    snmp_packet->used++;
+      *snmp_packet->out-- = (uint8_t)*str--;
+      snmp_packet->used++;
+    }
   }
 
   if(!snmp_ber_encode_length(snmp_packet, length)) {
@@ -416,7 +418,7 @@ snmp_ber_decode_string_len_buffer(snmp_packet_t *snmp_packet, const char **str, 
 
   *str = (const char *)snmp_packet->in;
 
-  if(snmp_packet->used == 0 || snmp_packet->used - *length <= 0) {
+  if(snmp_packet->used == 0 || snmp_packet->used < *length) {
     return 0;
   }
 
