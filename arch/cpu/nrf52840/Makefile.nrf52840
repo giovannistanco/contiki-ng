@@ -9,6 +9,8 @@ endif
 NRFJPROG ?= nrfjprog
 NRFUTIL ?= nrfutil
 
+NRF52840_CRYPTO ?= 0
+
 ifeq ($(NRF52840_USE_RTT),1)
   ### Suppress the existing debug I/O in os/lib
   CFLAGS += -DNRF52840_USE_RTT=1
@@ -56,7 +58,7 @@ CFLAGS += -mfloat-abi=hard -mfpu=fpv4-sp-d16
 
 LDFLAGS += -mabi=aapcs -mfloat-abi=hard -mfpu=fpv4-sp-d16
 LDFLAGS += --specs=nano.specs -lc -lnosys
-LDFLAGS += -L $(NRF5_SDK_ROOT)/modules/nrfx/mdk
+LDFLAGS += -L$(NRF5_SDK_ROOT)/modules/nrfx/mdk
 
 # nRF52 SDK sources
 NRF52_SDK_C_SRCS += components/boards/boards.c \
@@ -79,6 +81,51 @@ NRF52_SDK_C_SRCS += components/boards/boards.c \
   integration/nrfx/legacy/nrf_drv_power.c \
   components/libraries/fifo/app_fifo.c \
 
+ifeq ($(NRF52840_CRYPTO),1)
+  CFLAGS += -DNRF_CRYPTO_ENABLED=1
+  NRF52_SDK_C_SRCS += components/libraries/crypto/nrf_crypto_aead.c \
+    components/libraries/crypto/nrf_crypto_aes_shared.c \
+    components/libraries/crypto/nrf_crypto_ecdh.c \
+    components/libraries/crypto/nrf_crypto_eddsa.c \
+    components/libraries/crypto/nrf_crypto_hash.c \
+    components/libraries/crypto/nrf_crypto_hmac.c \
+    components/libraries/crypto/nrf_crypto_rng.c \
+    components/libraries/crypto/nrf_crypto_aes.c \
+    components/libraries/crypto/nrf_crypto_ecc.c \
+    components/libraries/crypto/nrf_crypto_ecdsa.c \
+    components/libraries/crypto/nrf_crypto_error.c \
+    components/libraries/crypto/nrf_crypto_hkdf.c \
+    components/libraries/crypto/nrf_crypto_init.c \
+    components/libraries/crypto/nrf_crypto_shared.c
+    #components/libraries/crypto/nrf_crypto_svc.c \
+
+   NRF52_SDK_C_SRCS += components/libraries/atomic/nrf_atomic.c
+    #components/libraries/svc/nrf_svc_handler.c \
+
+  ifeq ($(NRF52840_CRYPTO_BACKEND),cc310)
+    CFLAGS += -DNRF_CRYPTO_BACKEND_CC310_ENABLED=1
+    CFLAGS += -DNRF_CRYPTO_BACKEND_CC310_INTERRUPTS_ENABLED=1
+    CFLAGS += -DNRF_CRYPTO_BACKEND_CC310_RNG_ENABLED=1
+    CFLAGS += -DNRF_CRYPTO_RNG_AUTO_INIT_ENABLED=1
+
+    NRF52_SDK_C_SRCS += components/libraries/crypto/backend/cc310/cc310_backend_aes_aead.c \
+      components/libraries/crypto/backend/cc310/cc310_backend_chacha_poly_aead.c \
+      components/libraries/crypto/backend/cc310/cc310_backend_ecdh.c \
+      components/libraries/crypto/backend/cc310/cc310_backend_eddsa.c \
+      components/libraries/crypto/backend/cc310/cc310_backend_hmac.c \
+      components/libraries/crypto/backend/cc310/cc310_backend_mutex.c \
+      components/libraries/crypto/backend/cc310/cc310_backend_shared.c \
+      components/libraries/crypto/backend/cc310/cc310_backend_aes.c \
+      components/libraries/crypto/backend/cc310/cc310_backend_ecc.c \
+      components/libraries/crypto/backend/cc310/cc310_backend_ecdsa.c \
+      components/libraries/crypto/backend/cc310/cc310_backend_hash.c \
+      components/libraries/crypto/backend/cc310/cc310_backend_init.c \
+      components/libraries/crypto/backend/cc310/cc310_backend_rng.c
+  else
+    $(error "Unknown NRF52840_CRYPTO_BACKEND=$(NRF52840_CRYPTO_BACKEND)")
+  endif
+endif
+
 NRF52_SDK_ASM_SRCS = modules/nrfx/mdk/gcc_startup_nrf52840.S
 
 CONTIKI_SOURCEFILES += $(notdir $(NRF52_SDK_C_SRCS))
@@ -99,10 +146,36 @@ NRF52_SDK_INC_PATHS += components/boards
 NRF52_SDK_INC_PATHS += integration/nrfx
 NRF52_SDK_INC_PATHS += integration/nrfx/legacy
 NRF52_SDK_INC_PATHS += components/libraries/queue
+NRF52_SDK_INC_PATHS += components/libraries/stack_info
 NRF52_SDK_INC_PATHS += components/libraries/fifo
 NRF52_SDK_INC_PATHS += components/libraries/log
 NRF52_SDK_INC_PATHS += components/libraries/log/src
 NRF52_SDK_INC_PATHS += components/drivers_nrf/nrf_soc_nosd
+
+ifeq ($(NRF52840_CRYPTO),1)
+  #NRF52_SDK_INC_PATHS += components/libraries/svc
+  NRF52_SDK_INC_PATHS += components/libraries/mutex
+  NRF52_SDK_INC_PATHS += components/libraries/atomic
+
+  NRF52_SDK_INC_PATHS += components/libraries/crypto
+  NRF52_SDK_INC_PATHS += components/libraries/crypto/backend/cc310
+  NRF52_SDK_INC_PATHS += components/libraries/crypto/backend/cc310_bl
+  NRF52_SDK_INC_PATHS += components/libraries/crypto/backend/cifra
+  NRF52_SDK_INC_PATHS += components/libraries/crypto/backend/mbedtls
+  NRF52_SDK_INC_PATHS += components/libraries/crypto/backend/micro_ecc
+  NRF52_SDK_INC_PATHS += components/libraries/crypto/backend/nrf_hw
+  NRF52_SDK_INC_PATHS += components/libraries/crypto/backend/nrf_sw
+  NRF52_SDK_INC_PATHS += components/libraries/crypto/backend/oberon
+  NRF52_SDK_INC_PATHS += components/libraries/crypto/backend/optiga
+
+  ifeq ($(NRF52840_CRYPTO_BACKEND),cc310)
+    NRF52_SDK_INC_PATHS += external/nrf_cc310/include
+    LDFLAGS += -L$(NRF5_SDK_ROOT)/external/nrf_cc310/lib/cortex-m4/hard-float
+    LDFLAGS += -l:libnrf_cc310_0.9.12.a
+  else
+    $(error "Unknown NRF52840_CRYPTO_BACKEND=$(NRF52840_CRYPTO_BACKEND)")
+  endif
+endif
 
 ifeq ($(NRF52840_NATIVE_USB),1)
   include $(CONTIKI_CPU)/usb/Makefile.usb
