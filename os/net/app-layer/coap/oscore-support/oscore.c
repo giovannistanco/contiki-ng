@@ -432,6 +432,7 @@ oscore_prepare_message(coap_message_t *coap_pkt, uint8_t *buffer)
   coap_set_header_object_security(coap_pkt, option_value_buffer, option_value_len);
   
   /* Overwrite the CoAP code. */
+  /* See: https://tools.ietf.org/html/rfc8613#section-4.2 */
   if(coap_is_request(coap_pkt)) {
     coap_pkt->code = COAP_POST;
   } else {
