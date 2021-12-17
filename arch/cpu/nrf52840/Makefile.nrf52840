@@ -60,6 +60,8 @@ LDFLAGS += -mabi=aapcs -mfloat-abi=hard -mfpu=fpv4-sp-d16
 LDFLAGS += --specs=nano.specs -lc -lnosys
 LDFLAGS += -L$(NRF5_SDK_ROOT)/modules/nrfx/mdk
 
+TARGET_LIBFILES += -lm
+
 # nRF52 SDK sources
 NRF52_SDK_C_SRCS += components/boards/boards.c \
   components/libraries/util/app_error.c \
@@ -152,6 +154,8 @@ NRF52_SDK_INC_PATHS += components/libraries/log
 NRF52_SDK_INC_PATHS += components/libraries/log/src
 NRF52_SDK_INC_PATHS += components/drivers_nrf/nrf_soc_nosd
 
+
+
 ifeq ($(NRF52840_CRYPTO),1)
   #NRF52_SDK_INC_PATHS += components/libraries/svc
   NRF52_SDK_INC_PATHS += components/libraries/mutex
@@ -168,10 +172,21 @@ ifeq ($(NRF52840_CRYPTO),1)
   NRF52_SDK_INC_PATHS += components/libraries/crypto/backend/oberon
   NRF52_SDK_INC_PATHS += components/libraries/crypto/backend/optiga
 
+
   ifeq ($(NRF52840_CRYPTO_BACKEND),cc310)
+    NRF52_SDK_INC_PATHS += external/nrf_cc310/
     NRF52_SDK_INC_PATHS += external/nrf_cc310/include
-    LDFLAGS += -L$(NRF5_SDK_ROOT)/external/nrf_cc310/lib/cortex-m4/hard-float
-    LDFLAGS += -l:libnrf_cc310_0.9.12.a
+
+    TARGET_LIBFILES += $(NRF5_SDK_ROOT)/external/nrf_cc310/lib/cortex-m4/hard-float/libnrf_cc310_0.9.12.a
+    
+    #LDFLAGS += -L$(NRF5_SDK_ROOT)/external/nrf_cc310/lib/cortex-m4/hard-float/no-interrupts
+    #LDFLAGS += -L$(NRF5_SDK_ROOT)/external/nrf_cc310/lib/cortex-m4/hard-float/short-wchar
+    #LDFLAGS += -L$(NRF5_SDK_ROOT)/external/nrf_cc310/lib/cortex-m4/hard-float/short-wchar/no-interrupts
+    #LDFLAGS += -L$(NRF5_SDK_ROOT)/external/nrf_cc310/lib/cortex-m4/soft-float
+    #LDFLAGS += -L$(NRF5_SDK_ROOT)/external/nrf_cc310/lib/cortex-m4/soft-float/no-interrupts
+    #LDFLAGS += -L$(NRF5_SDK_ROOT)/external/nrf_cc310/lib/cortex-m4/soft-float/short-wchar
+    #LDFLAGS += -L$(NRF5_SDK_ROOT)/external/nrf_cc310/lib/cortex-m4/soft-float/short-wchar/no-interrupts
+
   else
     $(error "Unknown NRF52840_CRYPTO_BACKEND=$(NRF52840_CRYPTO_BACKEND)")
   endif
